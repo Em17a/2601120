@@ -2,9 +2,9 @@ name: Verify matchmaking rewrite
 
 on:
   pull_request:
-    branches: [cloudflare-migration]
+    branches: [main, cloudflare-migration]
   push:
-    branches: [rewrite-remote-multiplayer, cloudflare-migration, rewrite-v2-clean]
+    branches: [main, rewrite-remote-multiplayer, cloudflare-migration, rewrite-v2-clean]
 
 permissions:
   contents: read
