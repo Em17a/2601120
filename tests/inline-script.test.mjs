@@ -39,3 +39,14 @@ test('voice protection requires local Chinese recognition and an outbound audio 
   assert.match(source, /matchCancelling=true;clearInterval\(matchPoll\)/);
   assert.match(html, /不上传录音、不保存完整转写/);
 });
+
+
+test('matchmaking screen helpers receive room elements explicitly', async () => {
+  const source = await readFile(new URL('../public/app.js', import.meta.url), 'utf8');
+  assert.match(source, /function renderMatchingPreferences\\(els\\)/);
+  assert.match(source, /function returnToMatchSettings\\(message,els\\)/);
+  assert.match(source, /renderMatchingPreferences\\(els\\)/);
+  assert.match(source, /returnToMatchSettings\\([^\\n]*,els\\)/);
+  assert.equal((source.match(/\\bmatchStartedAt\\s*=/g) || []).length, 1);
+  assert.equal((source.match(/\\bmatchClock\\s*=/g) || []).length, 1);
+});
