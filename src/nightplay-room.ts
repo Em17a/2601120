@@ -364,7 +364,7 @@ export class NightplayRoom extends DurableObject<RoomEnv> {
     catch { return this.send(ws,{type:'error',code:'bad_json',message:'无法解析的消息。'}); }
     if(!msg||typeof msg.type!=='string')return;
     try { await this.handle(ws,msg); }
-    catch(e) { console.error('ws handler error',e);this.send(ws,{type:'error',code:'server_error',message:'服务器暂时出错，请稍后重试。'}); }
+    catch(e) { const detail=e instanceof Error?e.message:String(e); console.error('ws handler error',e);this.send(ws,{type:'error',code:'server_error',message:'服务器错误：'+detail.slice(0,180)}); }
   }
   async webSocketClose(ws:WebSocket) {
     await this.queue(async()=>{
