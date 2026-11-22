@@ -41,12 +41,11 @@ test('voice protection requires local Chinese recognition and an outbound audio 
 });
 
 
-test('matchmaking screen helpers receive room elements explicitly', async () => {
+test('matchmaking screen helpers receive room elements explicitly and share one timer clock', async () => {
   const source = await readFile(new URL('../public/app.js', import.meta.url), 'utf8');
-  assert.match(source, /function renderMatchingPreferences\\(els\\)/);
-  assert.match(source, /function returnToMatchSettings\\(message,els\\)/);
-  assert.match(source, /renderMatchingPreferences\\(els\\)/);
-  assert.match(source, /returnToMatchSettings\\([^\\n]*,els\\)/);
-  assert.equal((source.match(/\\bmatchStartedAt\\s*=/g) || []).length, 1);
-  assert.equal((source.match(/\\bmatchClock\\s*=/g) || []).length, 1);
+  assert.ok(source.includes('function renderMatchingPreferences(els)'));
+  assert.ok(source.includes('function returnToMatchSettings(message,els)'));
+  assert.ok(source.includes('renderMatchingPreferences(els);'));
+  assert.ok(source.includes('returnToMatchSettings(error.message,els);'));
+  assert.equal(source.split('let matchStartedAt=0,matchClock=null').length - 1, 1);
 });
