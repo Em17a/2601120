@@ -1,9 +1,9 @@
 name: Verify Nightplay
 on:
   pull_request:
-    branches: [cloudflare-migration]
+    branches: [main, cloudflare-migration]
   push:
-    branches: [matchmaking-rewrite, rewrite-v2-clean]
+    branches: [main, matchmaking-rewrite, rewrite-v2-clean]
 permissions:
   contents: read
 jobs:
