@@ -35,7 +35,7 @@ async function loadGameHistory(){
   });
  }catch(e){box.textContent="暂时无法读取记录，请稍后刷新。"}
 }
-const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600)};
+let toastTimer=null;const toast=(m)=>{const t=$("#toast");if(!t)return;t.textContent=String(m||"发生未知错误");t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),9000)};
 
  // 首页弹窗：匹配与邀请共用昵称，避免重复表单。
  function setModalTab(tab){
@@ -336,7 +336,7 @@ const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");se
    setState("wait",retry?"重连中…":"连接中…");
    ws=new WebSocket(socketUrl());
    ws.onopen=()=>{retry=0;if(matchClientId&&room&&want)sendJoin(matchClientId);else if(watching&&room)sendWatchJoin();else if(want&&room)sendJoin()};
-   ws.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch{return}handle(m)};
+   ws.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(err){console.error("WebSocket 消息解析失败",err,e.data);toast("收到无法识别的服务器消息，请截图反馈");return}try{handle(m)}catch(err){console.error("客户端处理服务器消息失败",err,m);toast("客户端处理房间响应失败："+(err&&err.message?err.message:String(err)).slice(0,160));if(pendingPublish||publishing){publishing=false;const b=$("#publicRoomPublishBtn");if(b){b.disabled=false;b.textContent="发布房间"}}}};
    ws.onclose=()=>{clearInterval(hb);hb=null;closeVoice(false,"语音已断开，请重新开启");els.voiceStart.disabled=true;if(!want){setState("off","未连接");return}
     setState("wait","重连中…");const delay=Math.min(15000,1000*2**retry)+Math.random()*500;retry++;clearTimeout(retryTimer);retryTimer=setTimeout(open,delay)};
    ws.onerror=()=>{};
