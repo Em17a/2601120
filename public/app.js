@@ -57,7 +57,8 @@ let toastTimer=null;const toast=(m)=>{const t=$("#toast");if(!t)return;t.textCon
   const modal=$("#actionModal");if(modal)modal.hidden=true;
   document.body.classList.remove("modal-open");
  }
- function formatMatchElapsed(ms){const total=Math.max(0,Math.floor(ms/1000)),minutes=Math.floor(total/60),seconds=total%60;return String(minutes).padStart(2,"0")+":"+String(seconds).padStart(2,"0")}
+ let matchStartedAt=0,matchClock=null;
+  function formatMatchElapsed(ms){const total=Math.max(0,Math.floor(ms/1000)),minutes=Math.floor(total/60),seconds=total%60;return String(minutes).padStart(2,"0")+":"+String(seconds).padStart(2,"0")}
  function updateMatchElapsed(){const node=$("#matchingElapsed");if(node&&matchStartedAt)node.textContent=formatMatchElapsed(Date.now()-matchStartedAt)}
  function stopMatchClock(){if(matchClock){clearInterval(matchClock);matchClock=null}matchStartedAt=0}
  function showMatchingScreen(on){const screen=$("#matchingScreen");if(!screen)return;screen.hidden=!on;if(on){$("#actionModal").hidden=true;document.body.classList.remove("modal-open");updateMatchElapsed()}else if(!$("#roomView").hidden){document.body.classList.remove("modal-open")}}
@@ -194,7 +195,7 @@ let toastTimer=null;const toast=(m)=>{const t=$("#toast");if(!t)return;t.textCon
  // ===== 双人房间：WebSocket + WebRTC 双人语音 =====
  const Room=(()=>{
   const els={lobby:$("#lobby"),view:$("#roomView"),state:$("#connState"),log:$("#chatLog"),members:$("#members"),seat:$("#seatLabel"),label:$("#roomLabel"),typing:$("#typing"),input:$("#chatInput"),nick:$("#nickname"),code:$("#roomCode"),connect:$("#connectBtn"),peek:$("#roomPeek"),voiceStatus:$("#voiceStatus"),voiceStart:$("#voiceStartBtn"),voiceMute:$("#voiceMuteBtn"),voiceHangup:$("#voiceHangupBtn"),voiceListen:$("#voiceListenBtn"),remoteAudio:$("#remoteAudio"),matchGender:$("#matchGender"),matchPreference:$("#matchPreference"),matchRole:$("#matchRole"),matchVoicePreference:$("#matchVoicePreference"),roomRole:$("#roomRole"),roleStatus:$("#roleStatus"),metroEmergency:$("#metroEmergency"),matchStart:$("#matchStartBtn"),matchCancel:$("#matchCancelBtn"),matchStatus:$("#matchStatus"),bpm:$("#bpmRange"),intensity:$("#intensityRange"),metroStart:$("#metroStart"),metroPause:$("#metroPause"),metroStop:$("#metroStop"),metroStatus:$("#metroStatus"),metroMode:$("#metroMode"),metroDifficulty:$("#metroDifficulty"),metroDuration:$("#metroDuration"),metroSlow:$("#metroSlow"),metroNormal:$("#metroNormal"),metroFast:$("#metroFast"),metroHold:$("#metroHold"),metroResume:$("#metroResume"),watchConsent:$("#watchConsentBtn"),watcherCount:$("#watcherCount"),watchStatus:$("#watchStatus")};
-  let ws=null,room=null,me=null,myRole=null,matchedRole=null,currentOpponentFriendCode="",currentOpponentNickname="",want=false,watching=false,watchConsent=false,watchAllowed=false,lastId=0,seen=new Set(),retry=0,retryTimer=null,hb=null,typingTimer=null,joining=false,matching=false,matchClientId=null,matchPoll=null,joinRetry=null,matchStartedAt=0,matchClock=null,pendingPublish=false,pendingPublishName="",publishing=false;
+  let ws=null,room=null,me=null,myRole=null,matchedRole=null,currentOpponentFriendCode="",currentOpponentNickname="",want=false,watching=false,watchConsent=false,watchAllowed=false,lastId=0,seen=new Set(),retry=0,retryTimer=null,hb=null,typingTimer=null,joining=false,matching=false,matchClientId=null,matchPoll=null,joinRetry=null,pendingPublish=false,pendingPublishName="",publishing=false;
   // WebRTC 状态：麦克风只会在用户主动点击后申请，不会自动开启。
   let pc=null,pcPromise=null,localStream=null,remoteStream=null,pendingCandidates=[];
   let voiceRecognition=null,voiceAudioContext=null,voiceSource=null,voiceDelay=null,voiceGate=null,voiceDestination=null;
