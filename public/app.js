@@ -194,7 +194,7 @@ const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");se
  // ===== 双人房间：WebSocket + WebRTC 双人语音 =====
  const Room=(()=>{
   const els={lobby:$("#lobby"),view:$("#roomView"),state:$("#connState"),log:$("#chatLog"),members:$("#members"),seat:$("#seatLabel"),label:$("#roomLabel"),typing:$("#typing"),input:$("#chatInput"),nick:$("#nickname"),code:$("#roomCode"),connect:$("#connectBtn"),peek:$("#roomPeek"),voiceStatus:$("#voiceStatus"),voiceStart:$("#voiceStartBtn"),voiceMute:$("#voiceMuteBtn"),voiceHangup:$("#voiceHangupBtn"),voiceListen:$("#voiceListenBtn"),remoteAudio:$("#remoteAudio"),matchGender:$("#matchGender"),matchPreference:$("#matchPreference"),matchRole:$("#matchRole"),matchVoicePreference:$("#matchVoicePreference"),roomRole:$("#roomRole"),roleStatus:$("#roleStatus"),metroEmergency:$("#metroEmergency"),matchStart:$("#matchStartBtn"),matchCancel:$("#matchCancelBtn"),matchStatus:$("#matchStatus"),bpm:$("#bpmRange"),intensity:$("#intensityRange"),metroStart:$("#metroStart"),metroPause:$("#metroPause"),metroStop:$("#metroStop"),metroStatus:$("#metroStatus"),metroMode:$("#metroMode"),metroDifficulty:$("#metroDifficulty"),metroDuration:$("#metroDuration"),metroSlow:$("#metroSlow"),metroNormal:$("#metroNormal"),metroFast:$("#metroFast"),metroHold:$("#metroHold"),metroResume:$("#metroResume"),watchConsent:$("#watchConsentBtn"),watcherCount:$("#watcherCount"),watchStatus:$("#watchStatus")};
-  let ws=null,room=null,me=null,myRole=null,matchedRole=null,currentOpponentFriendCode="",currentOpponentNickname="",want=false,watching=false,watchConsent=false,watchAllowed=false,lastId=0,seen=new Set(),retry=0,retryTimer=null,hb=null,typingTimer=null,joining=false,matching=false,matchClientId=null,matchPoll=null,joinRetry=null,matchStartedAt=0,matchClock=null,pendingPublish=false,pendingPublishName="";
+  let ws=null,room=null,me=null,myRole=null,matchedRole=null,currentOpponentFriendCode="",currentOpponentNickname="",want=false,watching=false,watchConsent=false,watchAllowed=false,lastId=0,seen=new Set(),retry=0,retryTimer=null,hb=null,typingTimer=null,joining=false,matching=false,matchClientId=null,matchPoll=null,joinRetry=null,matchStartedAt=0,matchClock=null,pendingPublish=false,pendingPublishName="",publishing=false;
   // WebRTC 状态：麦克风只会在用户主动点击后申请，不会自动开启。
   let pc=null,pcPromise=null,localStream=null,remoteStream=null,pendingCandidates=[];
   let voiceRecognition=null,voiceAudioContext=null,voiceSource=null,voiceDelay=null,voiceGate=null,voiceDestination=null;
@@ -599,6 +599,7 @@ const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");se
    }else if(m.type==="watch_left"){
     reset("已退出观战");
    }else if(m.type==="joined"){
+    publishing=false;$("#publicRoomPublishBtn").disabled=false;$("#publicRoomPublishBtn").textContent="发布房间";
     watching=false;document.body.classList.remove("watch-mode");watchConsent=Boolean(m.watchConsent);watchAllowed=Boolean(m.watchAllowed);joining=false;matching=false;stopMatchClock();showMatchingScreen(false);clearInterval(matchPoll);matchPoll=null;clearInterval(joinRetry);joinRetry=null;const fresh=!m.resumed||!me||me.id!==m.you.id;
     if(fresh){closeVoice(false);els.log.innerHTML="";seen=new Set();lastId=0;stopMetroTimer();clearMetroClocks();metroRunning=false;metroHasStarted=false;metroStopped=false;metroEndsAt=0;metroRemainingMs=(Number(els.metroDuration.value)||5)*60000;metroHoldCount=0;metroElapsedMs=0;metroEndReason="";$("#metroLivePanel").hidden=false;$("#metroEndScreen").hidden=true;metroBeat=0;$("#beatNumber").textContent="—";renderQuickPhrases()}
     me=m.you;myRole=m.you.role||"controller";matchedRole=null;matchClientId=null;currentOpponentFriendCode=String(m.opponentFriendCode||"");currentOpponentNickname=String(m.opponentNickname||"");$("#metroAddFriendBtn").hidden=!currentOpponentFriendCode;$("#metroAddFriendBtn").textContent=currentOpponentNickname?"添加 "+currentOpponentNickname+" 为好友":"添加对方为好友";renderQuickPhrases();room=m.room;iceConfigCache=null;localStorage.setItem(seatKey(room),m.token);localStorage.setItem("np_nick",me.nickname);
@@ -631,6 +632,7 @@ const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");se
    }
    else if(m.type==="left"){reset("已离开房间")}
    else if(m.type==="error"){
+    if(pendingPublish||publishing){publishing=false;$("#publicRoomPublishBtn").disabled=false;$("#publicRoomPublishBtn").textContent="发布房间"}
     if(m.code==="server_error"&&joining&&matchClientId&&want&&room){toast(m.message||"服务器暂时出错，正在重试进入房间…");return}
     clearInterval(joinRetry);joinRetry=null;joining=false;
     if(matchClientId){if(room)localStorage.removeItem(seatKey(room));reset(m.message||"自动进入房间失败，请重新匹配");return}
@@ -644,7 +646,7 @@ const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");se
     toast(m.message||"出错了");
    }
   }
-  function reset(msg){matchCancelling=false;matchClientId=null;clearInterval(joinRetry);joinRetry=null;stopMetro(false);closeVoice(false);currentOpponentFriendCode="";currentOpponentNickname="";$("#metroAddFriendBtn").hidden=true;watching=false;watchConsent=false;watchAllowed=false;document.body.classList.remove("watch-mode");showMatchingScreen(false);stopMatchClock();want=false;joining=false;matching=false;clearInterval(matchPoll);matchPoll=null;els.matchStart.disabled=false;els.matchCancel.disabled=true;els.connect.disabled=false;clearInterval(hb);hb=null;clearTimeout(retryTimer);me=null;myRole=null;matchedRole=null;showRoom(false);els.connect.disabled=false;if(ws){ws.onclose=null;try{ws.close()}catch{}ws=null}setState("off","未连接");if(msg)toast(msg);const u=new URL(location.href);u.searchParams.delete("room");history.replaceState(null,"",u)}
+  function reset(msg){publishing=false;$("#publicRoomPublishBtn").disabled=false;$("#publicRoomPublishBtn").textContent="发布房间";matchCancelling=false;matchClientId=null;clearInterval(joinRetry);joinRetry=null;stopMetro(false);closeVoice(false);currentOpponentFriendCode="";currentOpponentNickname="";$("#metroAddFriendBtn").hidden=true;watching=false;watchConsent=false;watchAllowed=false;document.body.classList.remove("watch-mode");showMatchingScreen(false);stopMatchClock();want=false;joining=false;matching=false;clearInterval(matchPoll);matchPoll=null;els.matchStart.disabled=false;els.matchCancel.disabled=true;els.connect.disabled=false;clearInterval(hb);hb=null;clearTimeout(retryTimer);me=null;myRole=null;matchedRole=null;showRoom(false);els.connect.disabled=false;if(ws){ws.onclose=null;try{ws.close()}catch{}ws=null}setState("off","未连接");if(msg)toast(msg);const u=new URL(location.href);u.searchParams.delete("room");history.replaceState(null,"",u)}
   let matchRequestBusy=false,matchCancelling=false;
   async function matchmakingRequest(action,clientId,details={}){
    const response=await fetch("/api/matchmaking",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action,clientId,...details}),cache:"no-store",signal:AbortSignal.timeout(action==="cancel"?8000:12000)});
@@ -723,11 +725,12 @@ const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");se
   function generateRoomCode(){const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";const r=crypto.getRandomValues(new Uint8Array(6));r.forEach(x=>s+=a[x%a.length]);return s}
   function randomCode(){els.code.value=generateRoomCode();peek()}
   function publishPublicRoom(){
+   if(publishing||joining||me){toast("正在处理房间请求，请勿重复点击");return}
    const publicNick=$("#publicRoomNickname").value.trim(),nick=publicNick||els.nick.value.trim(),name=$("#publicRoomName").value.trim().replace(/\s+/g," ").slice(0,20);
    if(!nick){toast("请先填写昵称");$("#publicRoomNickname").focus();return}
    els.nick.value=nick;localStorage.setItem("np_nick",nick);
    if(!name){toast("请先填写房间名称");$("#publicRoomName").focus();return}
-   pendingPublish=true;pendingPublishName=name;matchedRole=null;els.roomRole.value=$("#publicRoomRole").value;els.code.value=generateRoomCode();
+   publishing=true;$("#publicRoomPublishBtn").disabled=true;$("#publicRoomPublishBtn").textContent="正在发布并进入…";pendingPublish=true;pendingPublishName=name;els.roomRole.value=$("#publicRoomRole").value;els.code.value=generateRoomCode();
    closeVoice(false);lastId=0;seen=new Set();me=null;room=els.code.value;want=true;watching=false;joining=false;closeActionModal();
    if(ws&&ws.readyState===1)sendJoin();else open();
   }
