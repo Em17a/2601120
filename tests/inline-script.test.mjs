@@ -15,7 +15,7 @@ test('the extracted browser application parses without syntax errors', async () 
 test('the HTML shell references the separated stylesheet and application', async () => {
   const html = await readFile(new URL('../public/index.html', import.meta.url), 'utf8');
   assert.match(html, /<link rel="stylesheet" href="\/styles\.css">/);
-  assert.match(html, /<script src="\/app\.js" defer><\/script>/);
+  assert.match(html, /<script src="\\/app\\.js(?:\\?[^"]*)?" defer><\\/script>/);
   assert.doesNotMatch(html, /<style\b/i);
   assert.doesNotMatch(html, /<script\b(?![^>]*\bsrc\s*=)[^>]*>[\s\S]*?<\/script>/i);
 });
