@@ -85,11 +85,13 @@ export async function handleMatchmakingApi(
       }, Date.now());
       if (result.status === 'matched') onMatched();
       return responseFor(result);
-    } catch {
+    } catch (error) {
+      console.error('matchmaking join failed', error);
+      const detail = error instanceof Error ? error.message : String(error);
       return json({
         state: 'error',
         error: 'matchmaking_unavailable',
-        message: '匹配服务暂时不可用，请重试。',
+        message: '匹配服务暂时不可用：' + detail.slice(0, 180),
       }, 503);
     }
   }
@@ -110,11 +112,13 @@ export async function handleMatchmakingApi(
     const result = await pollMatchmaking(db, clientId, Date.now());
     if (result.status === 'matched') onMatched();
     return responseFor(result);
-  } catch {
+  } catch (error) {
+    console.error('matchmaking request failed', { action, error });
+    const detail = error instanceof Error ? error.message : String(error);
     return json({
       state: 'error',
       error: 'matchmaking_unavailable',
-      message: '匹配服务暂时不可用，请重试。',
+      message: '匹配服务暂时不可用：' + detail.slice(0, 180),
     }, 503);
   }
 }
