@@ -181,8 +181,15 @@
   <section style="width:min(100%,460px);background:#17151f;border:1px solid #393344;border-radius:22px;padding:28px;box-sizing:border-box">
     <p style="letter-spacing:.18em;color:#c4a5ff;font-size:12px">NIGHTPLAY · 18+</p>
     <h1 style="font-size:28px;margin:8px 0 12px">进入 Nightplay</h1>
-    <p style="color:#c8c2d2;line-height:1.7">本平台仅供年满 18 周岁的成年人使用。请确认你已年满 18 周岁，并同意自愿互动、隐私及平台免责声明。Turnstile 用于自动化流量防护，不构成真实身份或年龄证明。</p>
-    <label style="display:flex;gap:10px;align-items:flex-start;margin:22px 0;line-height:1.6"><input id="gplay-adult-confirm" type="checkbox" style="margin-top:5px;transform:scale(1.2)"><span>我确认自己已年满 18 周岁，并已阅读及同意平台规则与免责声明。</span></label>
+    <p style="color:#c8c2d2;line-height:1.7">本平台仅供年满 18 周岁的成年人使用。请阅读以下平台规则与免责声明。Turnstile 用于自动化流量防护，不构成真实身份或年龄证明。</p>
+    <div style="max-height:32vh;overflow-y:auto;overscroll-behavior:contain;background:#100e16;border:1px solid #393344;border-radius:12px;padding:14px;color:#d8d2e0;font-size:13px;line-height:1.8">
+      <p style="margin:0 0 10px">禁止发布涉及未成年人的色情、性暗示或其他不当内容，也禁止任何形式的剥削、胁迫和未经同意的隐私传播。</p>
+      <p style="margin:0 0 10px">用户不得泄露他人的个人信息、联系方式、真实身份或未经许可的私人影像。</p>
+      <p style="margin:0 0 10px">平台提供的是网络互动服务，不保证其他用户提供的信息真实，也不对用户之间的私人交易或线下行为提供担保。</p>
+      <p style="margin:0 0 10px">平台有权对违反规则的账号采取警告、限制功能、封禁等措施，并在法律要求时配合有关调查。</p>
+      <p style="margin:0">用户继续使用平台，即表示已阅读并同意本声明及平台使用规则。</p>
+    </div>
+    <label style="display:flex;gap:10px;align-items:flex-start;margin:18px 0;line-height:1.6"><input id="gplay-adult-confirm" type="checkbox" style="margin-top:5px;transform:scale(1.2)"><span>我确认自己已年满 18 周岁，并已阅读及同意以上声明及平台使用规则。</span></label>
     <div id="gplay-turnstile" style="min-height:66px"></div>
     <button id="gplay-access-submit" type="button" disabled style="width:100%;border:0;border-radius:12px;padding:14px;margin-top:12px;background:#a78bfa;color:#17121f;font-weight:700;font-size:16px;opacity:.55">验证并进入</button>
     <p id="gplay-access-message" role="status" style="color:#c8c2d2;font-size:13px;min-height:20px;margin-bottom:0">正在加载安全验证…</p>
