@@ -12,10 +12,14 @@ interface Env extends RoomEnv {
 const ACCESS_COOKIE = 'gplay_access';
 const ACCESS_TTL_SECONDS = 12 * 60 * 60;
 const PRODUCTION_HOSTS = new Set(['gplay.ntpl2.workers.dev']);
-const json = (data: unknown, status = 200, headers?: HeadersInit) => new Response(JSON.stringify(data), {
-  status,
-  headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...Object.fromEntries(new Headers(headers).entries()) },
-});
+const json = (data: unknown, status = 200, headers?: HeadersInit) => {
+  const responseHeaders = new Headers({
+    'content-type': 'application/json; charset=utf-8',
+    'cache-control': 'no-store',
+  });
+  if (headers) new Headers(headers).forEach((value, key) => responseHeaders.set(key, value));
+  return new Response(JSON.stringify(data), { status, headers: responseHeaders });
+};
 
 function allowedHost(hostname: string): boolean {
   return PRODUCTION_HOSTS.has(hostname) || hostname === 'localhost' || hostname === '127.0.0.1';
