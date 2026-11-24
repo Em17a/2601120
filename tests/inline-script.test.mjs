@@ -50,3 +50,14 @@ test('matchmaking screen helpers receive room elements explicitly and share one 
   assert.ok(source.indexOf('const Room=(()=>{') < source.indexOf('function returnToMatchSettings(message){'));
   assert.equal(source.split('let matchStartedAt=0,matchClock=null').length - 1, 1);
 });
+
+
+test('Turnstile access bootstrap parses and loads the application only after access verification', async () => {
+  const source = await readFile(new URL('../public/access.js', import.meta.url), 'utf8');
+  assert.doesNotThrow(() => new vm.Script(source, { filename: 'public/access.js' }));
+  assert.match(source, /action: 'gplay_access'/);
+  assert.match(source, /adultConfirmed: true/);
+  assert.match(source, /\/api\/access\/verify/);
+  assert.match(source, /\/api\/access\/status/);
+  assert.match(source, /turnstile\.reset\(widgetId\)/);
+});
